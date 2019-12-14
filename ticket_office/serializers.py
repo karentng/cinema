@@ -14,6 +14,12 @@ class MovieSerializer(serializers.ModelSerializer):
         fields = ['title', 'duration']
 
 
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ['name']
+
+
 class ShowtimeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Showtime
@@ -24,9 +30,3 @@ class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = ['showtime', 'customer']
-
-
-class CustomerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Ticket
-        fields = ['name']

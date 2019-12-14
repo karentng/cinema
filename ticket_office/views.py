@@ -1,6 +1,6 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 
-from cinema.ticket_office.serializers import *
+from ticket_office.serializers import *
 
 
 class RoomViewSet(viewsets.ModelViewSet):
