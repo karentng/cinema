@@ -1,3 +1,4 @@
+import datetime as dt
 from django.db import models
 
 
@@ -27,8 +28,8 @@ class Customer(models.Model):
 class Showtime(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    time = models.TimeField()
-    end_time = models.TimeField()
+    start_date = models.DateTimeField(default=dt.datetime.now())
+    end_date = models.DateTimeField()
 
     def __str__(self):
         return f"{self.room.name} {self.movie.title} {self.time}"
