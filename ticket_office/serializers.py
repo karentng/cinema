@@ -7,21 +7,21 @@ from rest_framework import serializers
 class RoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
-        fields = ['name', 'capacity']
+        fields = '__all__'
         extra_kwargs = {'name': {'required': True}, 'capacity': {'required': True}}
 
 
 class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
-        fields = ['title', 'duration']
+        fields = '__all__'
         extra_kwargs = {'title': {'required': True}, 'duration': {'required': True}}
 
 
 class ShowtimeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Showtime
-        fields = ['room', 'movie', 'start_date']
+        fields = "__all__"
         extra_kwargs = {'room': {'required': True}, 'movie': {'required': True}, 'start_date': {'required': True}}
 
     def validate(self, data):
@@ -64,7 +64,7 @@ class ShowtimeSerializer(serializers.ModelSerializer):
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
-        fields = ['showtime', 'num_seats']
+        fields = "__all__"
         extra_kwargs = {'showtime': {'required': True}, 'num_seats': {'required': True}}
 
     def validate_num_seats(self, seats):
