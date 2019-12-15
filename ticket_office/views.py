@@ -71,11 +71,15 @@ class RoomsPlayingView(views.APIView):
         :return:
         """
         rooms = Room.objects.all()
+        start = request.query_params.get('start', dt.datetime.now())
+        end = request.query_params.get('end')
         results = []
         for room in rooms:
+            qstart = Showtime.objects.filter(room=room.id, start_date__gte=start)
+            query = Showtime.objects.filter(room=room.id, start_date__gte=start, start_date__lte=end) if end else qstart
             results.append({'name': room.name,
                             'capacity': room.capacity,
-                            'showtimes': Showtime.objects.filter(room=room.id)})
+                            'showtimes': query})
 
         serializer = RoomsPlayingSerializer({'rooms': results})
         return Response(serializer.data)
@@ -93,11 +97,15 @@ class MoviesPlayingView(views.APIView):
         :return:
         """
         movies = Movie.objects.all()
+        start = request.query_params.get('start', dt.datetime.now())
+        end = request.query_params.get('end')
         results = []
         for movie in movies:
+            qstart = Showtime.objects.filter(movie=movie.id, start_date__gte=start)
+            query = Showtime.objects.filter(movie=movie.id, start_date__gte=start, start_date__lte=end) if end else qstart
             results.append({'title': movie.title,
                             'duration': movie.duration,
-                            'showtimes': Showtime.objects.filter(movie=movie.id)})
+                            'showtimes': query})
 
         serializer = MoviesPlayingSerializer({'movies': results})
         return Response(serializer.data)
