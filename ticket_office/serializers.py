@@ -1,6 +1,6 @@
 import datetime as dt
 
-from ticket_office.models import Room, Movie, Ticket, Showtime, Customer
+from ticket_office.models import Room, Movie, Ticket, Showtime
 from rest_framework import serializers
 
 
@@ -16,13 +16,6 @@ class MovieSerializer(serializers.ModelSerializer):
         model = Movie
         fields = ['title', 'duration']
         extra_kwargs = {'title': {'required': True}, 'duration': {'required': True}}
-
-
-class CustomerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Customer
-        fields = ['name']
-        extra_kwargs = {'name': {'required': True}}
 
 
 class ShowtimeSerializer(serializers.ModelSerializer):
@@ -41,18 +34,19 @@ class ShowtimeSerializer(serializers.ModelSerializer):
         movie = Movie.objects.get(id=data['movie'].id) if data.get('movie') else None
         start = data.get('start_date')
         end = start + dt.timedelta(minutes=movie.duration) if start and movie else None
-        overlap_start = Showtime.objects.filter(room=data['room'].id, start_date__gte=start, end_date__gte=end).count()
-        overlap_end = Showtime.objects.filter(room=data['room'].id, start_date__lte=start, end_date__lte=end).count()
+        overlap_start = Showtime.objects.filter(room=data['room'].id, start_date__gte=start, start_date__lte=end).count()
+        overlap_end = Showtime.objects.filter(room=data['room'].id, end_date__gte=start, end_date__lte=end).count()
 
         if overlap_start > 0 or overlap_end > 0:
             raise serializers.ValidationError("There is a showtime overlapped")
 
         data['end_date'] = end
+        data['available'] = data['room'].capacity
         return data
 
     def to_representation(self, instance):
         """
-        Method to get the movie and room name in the list, instad of getting the ids
+        Method to get the movie and room name in the list, instead of getting the ids
 
         :param instance:
         :return:
@@ -66,5 +60,31 @@ class ShowtimeSerializer(serializers.ModelSerializer):
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
-        fields = ['showtime', 'customer']
-        extra_kwargs = {'showtime': {'required': True}, 'customer': {'required': True}}
+        fields = ['showtime', 'num_seats']
+        extra_kwargs = {'showtime': {'required': True}, 'num_seats': {'required': True}}
+
+    def validate_num_seats(self, seats):
+        """
+        Check if the number of seats is an integer value
+
+        :rtype str seats: number of seats to buy in ticket
+        :return: value
+        """
+        try:
+            int(seats)
+        except:
+            raise serializers.ValidationError('Number of seats must be integer')
+
+        return seats
+
+    def to_representation(self, instance):
+        """
+        Method to get the showtime information instead of getting the ids
+
+        :param instance:
+        :return:
+        """
+        rep = super(TicketSerializer, self).to_representation(instance)
+        rep['showtime'] = f"{instance.showtime.room.name} {instance.showtime.movie.title} " \
+                          f"{instance.showtime.start_date}"
+        return rep
