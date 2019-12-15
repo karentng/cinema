@@ -94,28 +94,38 @@ class TicketSerializer(serializers.ModelSerializer):
         return rep
 
 
-class ShowtimeSimpleSerializer(serializers.ModelSerializer):
+class RoomSummarySerializer(serializers.ModelSerializer):
+    """
+    Serialize list of showtimes per room
+    """
+    showtimes = serializers.StringRelatedField(many=True)
+
     class Meta:
-        model = Showtime
-        fields = ['movie', 'start_date']
-
-    def to_representation(self, instance):
-        """
-        Method to get the movie in the list, instead of getting the ids
-
-        :param instance:
-        :return:
-        """
-        rep = super(ShowtimeSimpleSerializer, self).to_representation(instance)
-        rep['movie'] = instance.movie.title
-        return rep
-
-
-class RoomSummarySerializer(serializers.Serializer):
-    room = RoomSerializer()
-    showtimes = serializers.ListField(child=ShowtimeSimpleSerializer())
+        model = Room
+        fields = ['name', 'capacity', 'showtimes']
 
 
 class RoomsPlayingSerializer(serializers.Serializer):
+    """
+    Serialize list of rooms with showtimes
+    """
     rooms = serializers.ListField(child=RoomSummarySerializer())
+
+
+class MovieSummarySerializer(serializers.ModelSerializer):
+    """
+    Serialize a list of showtimes per movie
+    """
+    showtimes = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = Movie
+        fields = ['title', 'duration', 'showtimes']
+
+
+class MoviesPlayingSerializer(serializers.Serializer):
+    """
+    Serialize list of movies with showtimes
+    """
+    movies = serializers.ListField(child=MovieSummarySerializer())
 

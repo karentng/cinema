@@ -11,5 +11,6 @@ router.register(r'tickets', views.ShowtimeViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('rooms_playing', views.RoomsPlayingView.as_view()),
+    path('movies_playing', views.MoviesPlayingView.as_view()),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

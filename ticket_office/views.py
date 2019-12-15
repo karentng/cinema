@@ -61,7 +61,7 @@ class TicketView(viewsets.ModelViewSet):
 
 class RoomsPlayingView(views.APIView):
     """
-    List Movie rooms and what they're playing
+    List Movie rooms and their showtimes
     """
     def get(self, request):
         """
@@ -73,8 +73,31 @@ class RoomsPlayingView(views.APIView):
         rooms = Room.objects.all()
         results = []
         for room in rooms:
-            results.append({'room': room,
+            results.append({'name': room.name,
+                            'capacity': room.capacity,
                             'showtimes': Showtime.objects.filter(room=room.id)})
 
-        seri = RoomsPlayingSerializer({'rooms': results})
-        return Response(seri.data)
+        serializer = RoomsPlayingSerializer({'rooms': results})
+        return Response(serializer.data)
+
+
+class MoviesPlayingView(views.APIView):
+    """
+    List Movies and their showtimes
+    """
+    def get(self, request):
+        """
+        Build the object to get the rooms and showtimes
+
+        :param request:
+        :return:
+        """
+        movies = Movie.objects.all()
+        results = []
+        for movie in movies:
+            results.append({'title': movie.title,
+                            'duration': movie.duration,
+                            'showtimes': Showtime.objects.filter(movie=movie.id)})
+
+        serializer = MoviesPlayingSerializer({'movies': results})
+        return Response(serializer.data)
