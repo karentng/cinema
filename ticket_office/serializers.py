@@ -50,6 +50,18 @@ class ShowtimeSerializer(serializers.ModelSerializer):
         data['end_date'] = end
         return data
 
+    def to_representation(self, instance):
+        """
+        Method to get the movie and room name in the list, instad of getting the ids
+
+        :param instance:
+        :return:
+        """
+        rep = super(ShowtimeSerializer, self).to_representation(instance)
+        rep['room'] = instance.room.name
+        rep['movie'] = instance.movie.title
+        return rep
+
 
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
