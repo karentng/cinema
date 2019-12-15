@@ -12,7 +12,7 @@ class Room(models.Model):
 
 class Movie(models.Model):
     title = models.CharField(max_length=200)
-    duration = models.IntegerField(default=0)
+    duration = models.IntegerField(verbose_name="duration (minutes)", default=0)
 
     def __str__(self):
         return self.title
