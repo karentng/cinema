@@ -1,5 +1,6 @@
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, views
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
 from ticket_office.serializers import *
 
@@ -57,3 +58,23 @@ class TicketView(viewsets.ModelViewSet):
 
         return super().create(request, *args, **kwargs)
 
+
+class RoomsPlayingView(views.APIView):
+    """
+    List Movie rooms and what they're playing
+    """
+    def get(self, request):
+        """
+        Build the object to get the rooms and showtimes
+
+        :param request:
+        :return:
+        """
+        rooms = Room.objects.all()
+        results = []
+        for room in rooms:
+            results.append({'room': room,
+                            'showtimes': Showtime.objects.filter(room=room.id)})
+
+        seri = RoomsPlayingSerializer({'rooms': results})
+        return Response(seri.data)
