@@ -10,27 +10,124 @@ class RoomViewSet(viewsets.ModelViewSet):
     serializer_class = RoomSerializer
 
 
+class RoomUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
+    lookup_field = 'id'
+
+    def delete(self, request, *args, **kwargs):
+        room_id = request.data.get('id')
+        response = super().delete(request, *args, **kwargs)
+        if response.status_code == 204:
+            # Clearing cache to frees up space
+            from django.core.cache import cache
+            cache.delete('room_data_{}'.format(room_id))
+        return response
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+
+        if response.status_code == 200:
+            from django.core.cache import cache
+            room = response.data
+            cache.set('room_data_{}'.format(room['id']), {
+                'name': room['name'],
+                'capacity': room['capacity']
+            })
+        return response
+
+
 class MovieViewSet(viewsets.ModelViewSet):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
 
 
-class ShowtimeViewSet(viewsets.ModelViewSet):
-    queryset = Showtime.objects.all().order_by('start_date')
-    serializer_class = ShowtimeSerializer
+class MovieUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Movie.objects.all()
+    serializer_class = MovieSerializer
+    lookup_field = 'id'
 
-    def create(self, request, *args, **kwargs):
+    def delete(self, request, *args, **kwargs):
         """
-        Innitialize availability before creating showtime
+        Deletes a movie by id and frees up space in cache
 
         :param request:
         :param args:
         :param kwargs:
         :return:
         """
-        room = Room.objects.get(id=request.data.get('room'))
-        request.data['available'] = room.capacity
-        return super().create(request, *args, **kwargs)
+        movie_id = request.data.get('id')
+        response = super().delete(request, *args, **kwargs)
+        if response.status_code == 204:
+            from django.core.cache import cache
+            cache.delete('movie_data_{}'.format(movie_id))
+        return response
+
+    def update(self, request, *args, **kwargs):
+        """
+        Updates the information loaded from the movie and set that value in cache
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        response = super().update(request, *args, **kwargs)
+        if response.status_code == 200:
+            from django.core.cache import cache
+            movie = response.data
+            cache.set('movie_data_{}'.format(movie['id']), {
+                'name': movie['title'],
+                'capacity': movie['duration']
+            })
+        return response
+
+
+class ShowtimeViewSet(viewsets.ModelViewSet):
+    queryset = Showtime.objects.all().order_by('start_date')
+    serializer_class = ShowtimeSerializer
+
+
+class ShowtimeUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Showtime.objects.all()
+    serializer_class = ShowtimeSerializer
+    lookup_field = 'id'
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Delete a showtime by id. Frees up cache space
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        showtime_id = request.data.get('id')
+        response = super().delete(request, *args, **kwargs)
+        if response.status_code == 204:
+            from django.core.cache import cache
+            cache.delete('showtime_data_{}'.format(showtime_id))
+        return response
+
+    def update(self, request, *args, **kwargs):
+        """
+        Update a showtime loaded by id and set up the information in cache
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        response = super().update(request, *args, **kwargs)
+        if response.status_code == 200:
+            from django.core.cache import cache
+            showtime = response.data
+            cache.set('showtime_data_{}'.format(showtime['id']), {
+                'room': showtime['room'],
+                'movie': showtime['movie'],
+                'start_date': showtime['start_date']
+            })
+        return response
 
 
 class TicketView(viewsets.ModelViewSet):
