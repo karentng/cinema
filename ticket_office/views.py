@@ -18,6 +18,19 @@ class ShowtimeViewSet(viewsets.ModelViewSet):
     queryset = Showtime.objects.all().order_by('start_date')
     serializer_class = ShowtimeSerializer
 
+    def create(self, request, *args, **kwargs):
+        """
+        Innitialize availability before creating showtime
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        room = Room.objects.get(id=request.data.get('room'))
+        request.data['available'] = room.capacity
+        return super().create(request, *args, **kwargs)
+
 
 class TicketListView(generics.ListAPIView):
     queryset = Ticket.objects.all()

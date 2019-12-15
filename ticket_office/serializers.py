@@ -31,8 +31,13 @@ class ShowtimeSerializer(serializers.ModelSerializer):
         :rtype dict data: dictionary with the data sent to create new showtime
         :return: dictionary of validated data
         """
-        movie = Movie.objects.get(id=data['movie'].id) if data.get('movie') else None
         start = data.get('start_date')
+        now = dt.datetime.now()
+
+        if start < now:
+            raise serializers.ValidationError('Start Date must be a future time.')
+
+        movie = Movie.objects.get(id=data['movie'].id) if data.get('movie') else None
         end = start + dt.timedelta(minutes=movie.duration) if start and movie else None
         overlap_start = Showtime.objects.filter(room=data['room'].id, start_date__gte=start, start_date__lte=end).count()
         overlap_end = Showtime.objects.filter(room=data['room'].id, end_date__gte=start, end_date__lte=end).count()
@@ -40,8 +45,7 @@ class ShowtimeSerializer(serializers.ModelSerializer):
         if overlap_start > 0 or overlap_end > 0:
             raise serializers.ValidationError("There is a showtime overlapped")
 
-        data['end_date'] = end
-        data['available'] = data['room'].capacity
+        data['end_date'] = end  # set up the end time to the show
         return data
 
     def to_representation(self, instance):
