@@ -6,10 +6,9 @@ router = routers.DefaultRouter()
 router.register(r'rooms', views.RoomViewSet)
 router.register(r'movies', views.MovieViewSet)
 router.register(r'showtimes', views.ShowtimeViewSet)
+router.register(r'tickets', views.ShowtimeViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('tickets', views.TicketListView.as_view()),
-    path('tickets/sale', views.TicketSaleView.as_view()),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

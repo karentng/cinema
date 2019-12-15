@@ -32,12 +32,8 @@ class ShowtimeViewSet(viewsets.ModelViewSet):
         return super().create(request, *args, **kwargs)
 
 
-class TicketListView(generics.ListAPIView):
+class TicketView(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
-    serializer_class = TicketSerializer
-
-
-class TicketSaleView(generics.CreateAPIView):
     serializer_class = TicketSerializer
 
     def create(self, request, *args, **kwargs):
