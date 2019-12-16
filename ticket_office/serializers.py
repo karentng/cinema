@@ -33,7 +33,6 @@ class ShowtimeSerializer(serializers.ModelSerializer):
         :return: dictionary of validated data
         """
         start = data.get('start_date')
-        now = dt.datetime.now()
 
         if start < timezone.now():
             raise serializers.ValidationError('Start Date must be a future time.')

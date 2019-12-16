@@ -8,14 +8,17 @@ from ticket_office.serializers import *
 class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
-
-
-class RoomUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Room.objects.all()
-    serializer_class = RoomSerializer
     lookup_field = 'id'
 
     def delete(self, request, *args, **kwargs):
+        """
+        Delete a room by id
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
         room_id = request.data.get('id')
         response = super().delete(request, *args, **kwargs)
         if response.status_code == 204:
@@ -25,8 +28,15 @@ class RoomUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         return response
 
     def update(self, request, *args, **kwargs):
-        response = super().update(request, *args, **kwargs)
+        """
+        Update room's information loaded by id
 
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        response = super().update(request, *args, **kwargs)
         if response.status_code == 200:
             from django.core.cache import cache
             room = response.data
@@ -38,11 +48,6 @@ class RoomUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class MovieViewSet(viewsets.ModelViewSet):
-    queryset = Movie.objects.all()
-    serializer_class = MovieSerializer
-
-
-class MovieUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
     lookup_field = 'id'
@@ -85,11 +90,6 @@ class MovieUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
 class ShowtimeViewSet(viewsets.ModelViewSet):
     queryset = Showtime.objects.all().order_by('start_date')
-    serializer_class = ShowtimeSerializer
-
-
-class ShowtimeUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Showtime.objects.all()
     serializer_class = ShowtimeSerializer
     lookup_field = 'id'
 
