@@ -26,6 +26,12 @@ class RoomTestCase(APITestCase):
         self.client.delete('/rooms/{}/'.format(room_id))
         self.assertEqual(Room.objects.count(), initial_room_count - 1)
 
+    def test_list_room(self):
+        Room.objects.create(name='Room test', capacity=30)
+        room_count = Room.objects.count()
+        response = self.client.get('/rooms/')
+        self.assertEqual(len(response.data), room_count)
+
 
 class MovieTestCase(APITestCase):
 
@@ -44,6 +50,12 @@ class MovieTestCase(APITestCase):
         initial_movie_count = Movie.objects.count()
         self.client.delete('/movies/{}/'.format(movie.id))
         self.assertEqual(Movie.objects.count(), initial_movie_count - 1)
+
+    def test_list_movie(self):
+        Movie.objects.create(title='Movie test', duration=30)
+        movie_count = Movie.objects.count()
+        response = self.client.get('/movies/')
+        self.assertEqual(len(response.data), movie_count)
 
 
 class ShowtimeTestCase(APITestCase):
@@ -83,23 +95,56 @@ class ShowtimeTestCase(APITestCase):
         self.client.delete('/showtimes/{}/'.format(showtime.id))
         self.assertEqual(Showtime.objects.count(), initial_showtime_count - 1)
 
+    def test_list_showtime(self):
+        room = Room.objects.create(name='room test', capacity=30)
+        movie = Movie.objects.create(title='title test', duration=90)
+        start = dt.datetime.strptime('2020-06-29 08:15', '%Y-%m-%d %H:%M')
+        end = start + dt.timedelta(minutes=movie.duration)
+        showtime = Showtime.objects.create(room=room, movie=movie, start_date=start, end_date=end,
+                                           available=room.capacity)
+        showtime_count = Showtime.objects.count()
+        response = self.client.get('/showtimes/')
+        self.assertEqual(len(response.data), showtime_count)
 
-class TicketCreateTestCase(APITestCase):
+
+class TicketTestCase(APITestCase):
 
     def test_create_ticket(self):
         initial_ticket_count = Ticket.objects.count()
         room = Room.objects.create(name='room test', capacity=30)
         movie = Movie.objects.create(title='title test', duration=90)
-        start = dt.datetime.strptime('2018-06-29 08:15', '%Y-%m-%d %H:%M')
+        start = dt.datetime.strptime('2020-06-29 08:15', '%Y-%m-%d %H:%M')
         end = start + dt.timedelta(minutes=movie.duration)
-        showtime = Showtime.objects.create(room=room, movie=movie, start_date=start, available=room.capacity,
-                                           end_date=end)
+        showtime = Showtime.objects.create(room=room, movie=movie, start_date=start, end_date=end,
+                                           available=room.capacity)
         ticket_attrs = {'showtime': showtime.id, 'num_seats': 1}
         response = self.client.post('/tickets/', ticket_attrs, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Ticket.objects.count(), initial_ticket_count + 1)
+        self.assertEqual(response.data['showtime'], str(showtime))
+        self.assertEqual(response.data['num_seats'], ticket_attrs['num_seats'])
 
-        for attr, expected_value in ticket_attrs.items():
-            self.assertEqual(response.data[attr], expected_value)
+    def test_delete_ticket(self):
+        room = Room.objects.create(name='room test', capacity=30)
+        movie = Movie.objects.create(title='title test', duration=90)
+        start = dt.datetime.strptime('2020-06-29 08:15', '%Y-%m-%d %H:%M')
+        end = start + dt.timedelta(minutes=movie.duration)
+        showtime = Showtime.objects.create(room=room, movie=movie, start_date=start, end_date=end,
+                                           available=room.capacity)
+        ticket = Ticket.objects.create(showtime=showtime, num_seats=1)
+        initial_ticket_count = Ticket.objects.count()
+        self.client.delete('/tickets/{}/'.format(ticket.id))
+        self.assertEqual(Ticket.objects.count(), initial_ticket_count - 1)
 
-        self.assertEqual(Showtime.objects.get(id=showtime).available, showtime.availability-1)
+    def test_list_ticket(self):
+        room = Room.objects.create(name='room test', capacity=30)
+        movie = Movie.objects.create(title='title test', duration=90)
+        start = dt.datetime.strptime('2020-06-29 08:15', '%Y-%m-%d %H:%M')
+        end = start + dt.timedelta(minutes=movie.duration)
+        showtime = Showtime.objects.create(room=room, movie=movie, start_date=start, end_date=end,
+                                           available=room.capacity)
+        ticket_attrs = {'showtime': showtime.id, 'num_seats': 1}
+        response = self.client.post('/tickets/', ticket_attrs, format='json')
+        tickets_count = Ticket.objects.count()
+        response = self.client.get('/tickets/')
+        self.assertEqual(len(response.data), tickets_count)
