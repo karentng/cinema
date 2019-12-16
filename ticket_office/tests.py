@@ -32,6 +32,19 @@ class RoomTestCase(APITestCase):
         response = self.client.get('/rooms/')
         self.assertEqual(len(response.data), room_count)
 
+    def test_update_room(self):
+        room = Room.objects.create(name='test room', capacity=30)
+        response = self.client.patch(
+            '/rooms/{}/'.format(room.id),
+            {
+                'name': 'updated test room',
+                'capacity': 30
+            },
+            format='json',
+        )
+        updated = Room.objects.get(id=room.id)
+        self.assertEqual(updated.name, "updated test room")
+
 
 class MovieTestCase(APITestCase):
 
@@ -56,6 +69,19 @@ class MovieTestCase(APITestCase):
         movie_count = Movie.objects.count()
         response = self.client.get('/movies/')
         self.assertEqual(len(response.data), movie_count)
+
+    def test_update_movie(self):
+        movie = Movie.objects.create(title='test movie', duration=90)
+        self.client.patch(
+            '/movies/{}/'.format(movie.id),
+            {
+                'title': 'updated test title',
+                'duration': 30
+            },
+            format='json',
+        )
+        updated = Movie.objects.get(id=movie.id)
+        self.assertEqual(updated.title, "updated test title")
 
 
 class ShowtimeTestCase(APITestCase):
@@ -100,11 +126,34 @@ class ShowtimeTestCase(APITestCase):
         movie = Movie.objects.create(title='title test', duration=90)
         start = dt.datetime.strptime('2020-06-29 08:15', '%Y-%m-%d %H:%M')
         end = start + dt.timedelta(minutes=movie.duration)
-        showtime = Showtime.objects.create(room=room, movie=movie, start_date=start, end_date=end,
+        Showtime.objects.create(room=room, movie=movie, start_date=start, end_date=end,
                                            available=room.capacity)
         showtime_count = Showtime.objects.count()
         response = self.client.get('/showtimes/')
         self.assertEqual(len(response.data), showtime_count)
+
+    def test_update_showtime(self):
+        room = Room.objects.create(name='room test', capacity=30)
+        movie = Movie.objects.create(title='title test', duration=90)
+        start = dt.datetime.strptime('2020-06-29 08:15', '%Y-%m-%d %H:%M')
+        start2 = dt.datetime.strptime('2020-08-29 08:15', '%Y-%m-%d %H:%M')
+        end = start + dt.timedelta(minutes=movie.duration)
+        showtime = Showtime.objects.create(room=room, movie=movie, start_date=start, end_date=end,
+                                           available=room.capacity)
+        self.client.patch(
+            '/showtimes/{}/'.format(showtime.id),
+            {
+                'room': room.id,
+                'movie': movie.id,
+                'start_date': start2,
+                'end_date': end,
+                'available': 30
+            },
+            format='json',
+        )
+        updated = Showtime.objects.get(id=showtime.id)
+        self.assertEqual(updated.start_date,
+                         dt.datetime.strptime('2020-08-29 08:15', '%Y-%m-%d %H:%M'))
 
 
 class TicketTestCase(APITestCase):
@@ -148,3 +197,22 @@ class TicketTestCase(APITestCase):
         tickets_count = Ticket.objects.count()
         response = self.client.get('/tickets/')
         self.assertEqual(len(response.data), tickets_count)
+
+    def test_update_ticket(self):
+        room = Room.objects.create(name='room test', capacity=30)
+        movie = Movie.objects.create(title='title test', duration=90)
+        start = dt.datetime.strptime('2020-06-29 08:15', '%Y-%m-%d %H:%M')
+        end = start + dt.timedelta(minutes=movie.duration)
+        showtime = Showtime.objects.create(room=room, movie=movie, start_date=start, end_date=end,
+                                           available=room.capacity)
+        ticket = Ticket.objects.create(showtime=showtime, num_seats=1)
+        self.client.patch(
+            '/tickets/{}/'.format(ticket.id),
+            {
+                'showtime': showtime.id,
+                'num_seats': 2
+            },
+            format='json',
+        )
+        updated = Ticket.objects.get(id=ticket.id)
+        self.assertEqual(updated.num_seats, 2)
